@@ -191,14 +191,16 @@
         vault: localStorage.getItem('n_vault') || "Search results will appear here.",
         notes: localStorage.getItem('n_notes') || "",
         langPair: 'en|ar',
-        sessionUser: "Nour" // Default Master Memory
+        sessionUser: localStorage.getItem('n_user') || "Nour" // Persistent Memory
     };
 
     // 1. SOUND & VOICE
     let voiceEnabled = false;
     function unlockVoice() {
         voiceEnabled = true;
-        const u = new SpeechSynthesisUtterance("Vocal interface active. Welcome back, Nour.");
+        // FIXED: Now greets based on the actual session user
+        const greetingText = `Vocal interface active. Welcome, ${STATE.sessionUser}.`;
+        const u = new SpeechSynthesisUtterance(greetingText);
         window.speechSynthesis.speak(u);
         document.getElementById('v-btn').innerHTML = '✅';
         setTimeout(() => document.getElementById('v-btn').style.opacity = "0.4", 2000);
@@ -278,12 +280,15 @@
         input.value = "";
         const cmd = val.toLowerCase();
 
-        // --- ADAPTIVE IDENTITY CAPTURE ---
+        // --- FIXED IDENTITY CAPTURE ---
         if (cmd.startsWith("i am ") || cmd.startsWith("my name is ") || cmd.startsWith("call me ")) {
             const words = cmd.split(" ");
             const newName = words[words.length - 1];
             const capitalizedName = newName.charAt(0).toUpperCase() + newName.slice(1);
+            
+            // Save to State AND LocalStorage
             STATE.sessionUser = capitalizedName;
+            localStorage.setItem('n_user', capitalizedName);
             
             let r = (capitalizedName === "Nour") ? 
                 "Identity restored. Welcome back, Nour." : 
@@ -293,7 +298,7 @@
             return;
         }
 
-        // SPEAKER IDENTIFICATION CHECK
+        // FIXED GREETING LOGIC
         if (cmd.includes("hi") || cmd.includes("hello") || cmd.includes("hey nico")) {
             const r = `System online. Hello ${STATE.sessionUser}. What's on your mind?`;
             addMsg('nico', r); speak(r);
@@ -305,12 +310,9 @@
             const q = val.substring(10);
             addMsg('nico', "Analyzing linguistics...");
             try {
-                // Fetching with high-quality headers
                 const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(q)}&langpair=${STATE.langPair}&de=nour@nico-os.com`);
                 const d = await r.json();
                 let res = d.responseData.translatedText;
-                
-                // Fluency cleanup for Arabic
                 res = res.replace("أنا يكون", "أنا").replace("هو يكون", "هو").replace("هي تكون", "هي"); 
 
                 const isAR = STATE.langPair === 'en|ar';
