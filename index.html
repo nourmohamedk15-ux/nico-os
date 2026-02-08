@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NICO OS V27</title>
+    <title>NICO OS V28</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -90,7 +90,7 @@
         .rtl { direction: rtl; font-family: 'Cairo'; text-align: right; color: var(--primary); font-size: 1.2rem; }
 
         /* Widgets Overlay */
-        #calc-box, #sticky-box {
+        #calc-box, #sticky-box, #timer-box {
             display: none; position: fixed; top: 12%; left: 50%; transform: translateX(-50%);
             width: 90%; z-index: 2000; background: rgba(15, 23, 42, 0.98); 
             border: 1px solid var(--accent); border-radius: 28px; padding: 25px; 
@@ -113,12 +113,14 @@
             <div class="stats-bar">
                 <div class="stat-item"><div id="net-dot" class="online-dot"></div> <span id="net-text">Online</span></div>
                 <div class="stat-item">⚡ <span id="bat-text">--%</span></div>
+                <div class="stat-item">🕌 <span id="prayer-text" style="color:var(--primary)">Madinah...</span></div>
             </div>
         </div>
-        <div style="display:flex; gap:22px; align-items: center;">
-            <span onclick="toggleWidget('calc-box')" style="cursor:pointer; font-size:1.4rem;">🔢</span>
-            <span onclick="toggleWidget('sticky-box')" style="cursor:pointer; font-size:1.4rem;">📌</span>
-            <button id="v-btn" onclick="unlockVoice()" style="border:none; background:none; font-size:1.4rem; cursor:pointer;">🔊</button>
+        <div style="display:flex; gap:18px; align-items: center;">
+            <span onclick="toggleWidget('calc-box')" style="cursor:pointer; font-size:1.3rem;">🔢</span>
+            <span onclick="toggleWidget('timer-box')" style="cursor:pointer; font-size:1.3rem;">⏱️</span>
+            <span onclick="toggleWidget('sticky-box')" style="cursor:pointer; font-size:1.3rem;">📌</span>
+            <button id="v-btn" onclick="unlockVoice()" style="border:none; background:none; font-size:1.3rem; cursor:pointer;">🔊</button>
         </div>
     </header>
 
@@ -127,7 +129,7 @@
         <div style="position:fixed; bottom:90px; left:20px; right:20px; z-index:1001;">
             <div class="input-group">
                 <span onclick="startVoice()" style="cursor:pointer; font-size:1.4rem; margin-right:10px;">🎙️</span>
-                <input type="text" id="user-in" placeholder="Translate, Video, or Search..." onkeydown="if(event.key==='Enter') handleSend()">
+                <input type="text" id="user-in" placeholder="Try 'Open Whatsapp'..." onkeydown="if(event.key==='Enter') handleSend()">
                 <span onclick="handleSend()" style="color:var(--primary); font-size:1.6rem; cursor:pointer;">➔</span>
             </div>
         </div>
@@ -136,7 +138,6 @@
     <div id="vault" class="screen">
         <h3 style="color:var(--accent); margin-bottom:15px; letter-spacing:1px;">📁 SYSTEM VAULT</h3>
         <div id="vault-content" class="card">Recent data will be cached here.</div>
-        
         <h3 style="color:var(--primary); margin-top:35px; margin-bottom:15px; letter-spacing:1px;">📜 LOG HISTORY</h3>
         <div id="history-log"></div>
     </div>
@@ -163,9 +164,26 @@
         </div>
     </div>
 
+    <div id="timer-box">
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px;"><b>STOPWATCH / TIMER</b> <span onclick="toggleWidget('timer-box')" style="cursor:pointer">✕</span></div>
+        <div style="text-align:center;">
+            <div id="sw-display" style="font-family:'Orbitron'; font-size:2.5rem; color:var(--accent); margin-bottom:20px;">00:00:00</div>
+            <div style="display:flex; gap:10px; justify-content: center; margin-bottom:20px;">
+                <button class="btn-small" onclick="startSW()">START</button>
+                <button class="btn-small" style="background:#475569" onclick="stopSW()">STOP</button>
+                <button class="btn-small" style="background:#ef4444" onclick="resetSW()">RESET</button>
+            </div>
+            <hr style="opacity:0.1; margin:20px 0;">
+            <div style="display:flex; gap:5px; align-items:center; justify-content:center;">
+                <input type="number" id="t-min" placeholder="Min" style="width:60px; text-align:center; background:rgba(255,255,255,0.1); border-radius:10px; padding:5px;">
+                <button class="btn-small" onclick="startTimer()">START TIMER</button>
+            </div>
+        </div>
+    </div>
+
     <div id="sticky-box">
         <div style="display:flex; justify-content:space-between; margin-bottom:15px;"><b>SECURE NOTES</b> <span onclick="toggleWidget('sticky-box')" style="cursor:pointer">✕</span></div>
-        <textarea id="noteArea" style="width:100%; height:320px; background:rgba(0,0,0,0.4); color:white; border:none; border-radius:20px; padding:20px; font-family:inherit; outline:none; resize:none; font-size:1rem;" placeholder="Start typing... notes auto-save."></textarea>
+        <textarea id="noteArea" style="width:100%; height:320px; background:rgba(0,0,0,0.4); color:white; border:none; border-radius:20px; padding:20px; font-family:inherit; outline:none; resize:none; font-size:1rem;" placeholder="Start typing..."></textarea>
     </div>
 
     <nav class="nav-bar">
@@ -183,24 +201,39 @@
         langPair: 'en|ar'
     };
 
-    // 1. SOUND LOGIC
+    // 1. SOUND & VOICE
     let voiceEnabled = false;
     function unlockVoice() {
         voiceEnabled = true;
-        const u = new SpeechSynthesisUtterance("Vocal interface initialized");
+        const u = new SpeechSynthesisUtterance("Vocal interface active");
         window.speechSynthesis.speak(u);
         document.getElementById('v-btn').innerHTML = '✅';
         setTimeout(() => document.getElementById('v-btn').style.opacity = "0.4", 2000);
     }
 
-    function speak(t, l) {
+    function speak(t, l = 'en-US') {
         if(!voiceEnabled) return;
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(t); u.lang = l; u.rate = 0.95;
         window.speechSynthesis.speak(u);
     }
 
-    // 2. SYSTEM STATS (Battery & Network)
+    // 2. MADINAH PRAYER TIMES
+    async function getPrayers() {
+        try {
+            const r = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Madinah&country=Saudi+Arabia&method=4');
+            const d = await r.json();
+            const t = d.data.timings;
+            // Identify next prayer logic simplified
+            const now = new Date();
+            const time = now.getHours() + ":" + now.getMinutes();
+            document.getElementById('prayer-text').innerText = `Dhuhr: ${t.Dhuhr}`;
+        } catch(e) { document.getElementById('prayer-text').innerText = "Madinah"; }
+    }
+    getPrayers();
+    setInterval(getPrayers, 3600000); // Update every hour
+
+    // 3. SYSTEM STATS
     function updateStats() {
         if (navigator.getBattery) {
             navigator.getBattery().then(bat => {
@@ -224,7 +257,7 @@
     window.addEventListener('offline', updateStats);
     updateStats();
 
-    // 3. CORE FUNCTIONS
+    // 4. CORE FUNCTIONS
     window.onload = () => {
         renderChat(); renderLog();
         document.getElementById('vault-content').innerHTML = STATE.vault;
@@ -245,7 +278,7 @@
         w.style.display = (w.style.display === 'block') ? 'none' : 'block';
     }
 
-    // 4. THE COMMAND HANDLER (YouTube, Wiki, Translate)
+    // 5. COMMAND HANDLER (Added Whatsapp logic)
     async function handleSend() {
         const input = document.getElementById('user-in');
         const val = input.value.trim(); if(!val) return;
@@ -253,8 +286,15 @@
         input.value = "";
         const cmd = val.toLowerCase();
 
+        // OPEN WHATSAPP
+        if(cmd.includes("open whatsapp")) {
+            addMsg('nico', "Opening WhatsApp...");
+            speak("Opening WhatsApp");
+            window.location.href = "whatsapp://send";
+            setTimeout(() => { if(document.hasFocus()) window.open("https://web.whatsapp.com/", "_blank"); }, 1000);
+        }
         // TRANSLATE
-        if(cmd.startsWith("translate ")) {
+        else if(cmd.startsWith("translate ")) {
             const q = val.substring(10);
             try {
                 const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(q)}&langpair=${STATE.langPair}`);
@@ -272,7 +312,7 @@
             const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
             addMsg('nico', `Search for <b>${q}</b> ready.<br><a href="${url}" target="_blank" class="yt-link">WATCH ON YOUTUBE ➔</a>`);
         }
-        // WIKIPEDIA + GOOGLE FALLBACK
+        // SEARCH
         else if(cmd.startsWith("search ")) {
             const q = val.substring(7);
             addMsg('nico', `Searching Vault...`);
@@ -280,81 +320,68 @@
                 const r = await fetch(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=extracts&exintro&explaintext&titles=${encodeURIComponent(q)}`);
                 const d = await r.json();
                 const id = Object.keys(d.query.pages)[0];
-                let content = "";
-
-                if(id === "-1") {
-                    content = `<div style="text-align:center; padding:10px;">No entry found for "${q}".<br><a href="https://www.google.com/search?q=${encodeURIComponent(q)}" target="_blank" class="google-link">SEARCH GOOGLE ➔</a></div>`;
-                } else {
-                    content = `<b>${d.query.pages[id].title}</b><hr style="opacity:0.2;">${d.query.pages[id].extract}`;
-                }
-
-                STATE.vault = content;
-                localStorage.setItem('n_vault', content);
+                let content = (id === "-1") ? `<div style="text-align:center; padding:10px;">No Wiki entry. <a href="https://www.google.com/search?q=${encodeURIComponent(q)}" target="_blank" class="google-link">GOOGLE ➔</a></div>` : `<b>${d.query.pages[id].title}</b><hr style="opacity:0.2;">${d.query.pages[id].extract}`;
+                STATE.vault = content; localStorage.setItem('n_vault', content);
                 document.getElementById('vault-content').innerHTML = content;
                 showScreen('vault', document.querySelectorAll('.nav-item')[1]);
-            } catch(e) { addMsg('nico', "Search error."); }
+            } catch(e) { addMsg('nico', "Error."); }
         }
     }
 
-    // 5. HELPERS
+    // 6. STOPWATCH & TIMER LOGIC
+    let swInterval, swSec = 0;
+    function startSW() {
+        clearInterval(swInterval);
+        swInterval = setInterval(() => {
+            swSec++;
+            let h = Math.floor(swSec/3600).toString().padStart(2,'0');
+            let m = Math.floor((swSec%3600)/60).toString().padStart(2,'0');
+            let s = (swSec%60).toString().padStart(2,'0');
+            document.getElementById('sw-display').innerText = `${h}:${m}:${s}`;
+        }, 1000);
+    }
+    function stopSW() { clearInterval(swInterval); }
+    function resetSW() { stopSW(); swSec = 0; document.getElementById('sw-display').innerText = "00:00:00"; }
+    
+    function startTimer() {
+        let mins = document.getElementById('t-min').value;
+        if(!mins) return;
+        let target = mins * 60;
+        document.getElementById('timer-box').style.display = 'none';
+        addMsg('nico', `Timer set for ${mins} minutes.`);
+        setTimeout(() => {
+            speak("Time is up!");
+            alert("Timer Finished!");
+        }, target * 1000);
+    }
+
+    // HELPERS
     function addMsg(who, txt) {
         STATE.chat.push({who, txt});
         if(STATE.chat.length > 20) STATE.chat.shift();
         localStorage.setItem('n_chat', JSON.stringify(STATE.chat));
         renderChat();
     }
-
     function renderChat() {
-        document.getElementById('chat-feed').innerHTML = STATE.chat.map(c => `
-            <div class="card" style="padding:15px; border-left:5px solid ${c.who==='user'?'var(--accent)':'var(--primary)'}">
-                <small style="color:${c.who==='user'?'var(--accent)':'var(--primary)'}; font-weight:bold;">${c.who.toUpperCase()}</small><br>${c.txt}
-            </div>`).join('');
+        document.getElementById('chat-feed').innerHTML = STATE.chat.map(c => `<div class="card" style="padding:15px; border-left:5px solid ${c.who==='user'?'var(--accent)':'var(--primary)'}"><small style="color:${c.who==='user'?'var(--accent)':'var(--primary)'}; font-weight:bold;">${c.who.toUpperCase()}</small><br>${c.txt}</div>`).join('');
         document.getElementById('home').scrollTop = 9999;
     }
-
-    function saveToLog(o, t, isAR) {
-        STATE.history.unshift({o, t, isAR, id: Date.now()});
-        localStorage.setItem('n_hist', JSON.stringify(STATE.history));
-        renderLog();
-    }
-
-    function deleteLog(id) {
-        STATE.history = STATE.history.filter(i => i.id !== id);
-        localStorage.setItem('n_hist', JSON.stringify(STATE.history));
-        renderLog();
-    }
-
-    function renderLog() {
-        document.getElementById('history-log').innerHTML = STATE.history.map(h => `
-            <div class="card" style="font-size:0.9rem;">
-                <span class="del-btn" onclick="deleteLog(${h.id})">×</span>
-                <b style="color:var(--accent)">${h.o}</b><br>
-                <span class="${h.isAR?'rtl':''}">${h.t}</span>
-            </div>`).join('');
-    }
-
-    function swapLang() { 
-        STATE.langPair = (STATE.langPair === 'en|ar') ? 'ar|en' : 'en|ar';
-        document.getElementById('lang-ind').innerText = (STATE.langPair === 'en|ar') ? 'EN → AR' : 'AR → EN';
-    }
-
+    function saveToLog(o, t, isAR) { STATE.history.unshift({o, t, isAR, id: Date.now()}); localStorage.setItem('n_hist', JSON.stringify(STATE.history)); renderLog(); }
+    function deleteLog(id) { STATE.history = STATE.history.filter(i => i.id !== id); localStorage.setItem('n_hist', JSON.stringify(STATE.history)); renderLog(); }
+    function renderLog() { document.getElementById('history-log').innerHTML = STATE.history.map(h => `<div class="card" style="font-size:0.9rem;"><span class="del-btn" onclick="deleteLog(${h.id})">×</span><b style="color:var(--accent)">${h.o}</b><br><span class="${h.isAR?'rtl':''}">${h.t}</span></div>`).join(''); }
+    function swapLang() { STATE.langPair = (STATE.langPair === 'en|ar') ? 'ar|en' : 'en|ar'; document.getElementById('lang-ind').innerText = (STATE.langPair === 'en|ar') ? 'EN → AR' : 'AR → EN'; }
     function cIn(v) { document.getElementById('calc-screen').value += v; }
     function cClr() { document.getElementById('calc-screen').value = ''; }
     function cEq() { try { document.getElementById('calc-screen').value = eval(document.getElementById('calc-screen').value); } catch(e) { alert('Error'); } }
-
-    function clearMemory() { if(confirm("Erase all data?")) { localStorage.clear(); location.reload(); } }
-
+    function clearMemory() { if(confirm("Erase data?")) { localStorage.clear(); location.reload(); } }
     function startVoice() {
         const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if(!Speech) return alert("Voice search not supported on this browser.");
+        if(!Speech) return alert("Browser not supported.");
         const rec = new Speech();
         rec.start();
         rec.onresult = (e) => { document.getElementById('user-in').value = e.results[0][0].transcript; handleSend(); };
     }
-
-    setInterval(() => {
-        document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB', { timeZone: "Asia/Riyadh", hour12: false });
-    }, 1000);
+    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB', { timeZone: "Asia/Riyadh", hour12: false }); }, 1000);
 </script>
 </body>
 </html>
