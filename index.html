@@ -192,7 +192,7 @@
         notes: localStorage.getItem('n_notes') || "",
         langPair: 'en|ar',
         masterName: "Nour",
-        sessionUser: null // Will be set during the "Hi" phase
+        sessionUser: null 
     };
 
     // 1. SOUND & VOICE
@@ -271,13 +271,30 @@
         w.style.display = (w.style.display === 'block') ? 'none' : 'block';
     }
 
-    // 5. COMMAND & CONVERSATION HANDLER (With Speaker Recognition Logic)
+    // 5. COMMAND & CONVERSATION HANDLER
     async function handleSend() {
         const input = document.getElementById('user-in');
         const val = input.value.trim(); if(!val) return;
         addMsg('user', val);
         input.value = "";
         const cmd = val.toLowerCase();
+
+        // --- UPDATED IDENTITY CAPTURE ---
+        const isNour = cmd.includes("nour") || cmd === "nour";
+        
+        if (cmd.startsWith("i am ") || cmd.startsWith("my name is ") || cmd.includes("it's") || isNour) {
+            if (isNour) {
+                STATE.sessionUser = "Nour";
+                const r = "Voice print confirmed. Welcome back, Nour. How can I help you today?";
+                addMsg('nico', r); speak(r);
+            } else {
+                const words = cmd.split(" ");
+                STATE.sessionUser = words[words.length - 1];
+                const r = `Hi ${STATE.sessionUser}. I have recorded your presence. What can I do for you?`;
+                addMsg('nico', r); speak(r);
+            }
+            return; 
+        }
 
         // SPEAKER IDENTIFICATION CHECK
         if (cmd.includes("hi") || cmd.includes("hello") || cmd.includes("hey nico")) {
@@ -292,22 +309,7 @@
             }
         }
 
-        // IDENTITY CAPTURE
-        if (cmd.startsWith("i am ") || cmd.startsWith("my name is ") || cmd.includes("it's nour")) {
-            if (cmd.includes("nour")) {
-                STATE.sessionUser = "Nour";
-                const r = "Voice print confirmed. Welcome back, Nour. How can I help you today?";
-                addMsg('nico', r); speak(r);
-            } else {
-                const words = cmd.split(" ");
-                STATE.sessionUser = words[words.length - 1];
-                const r = `Hi ${STATE.sessionUser}. I have recorded your presence. What can I do for you?`;
-                addMsg('nico', r); speak(r);
-            }
-            return;
-        }
-
-        // STANDARD COMMANDS (Respecting the Session User)
+        // STANDARD COMMANDS
         if (cmd.includes("how are you")) {
             const r = `I'm functioning perfectly, ${STATE.sessionUser || 'friend'}! Thank you for asking.`;
             addMsg('nico', r); speak(r);
