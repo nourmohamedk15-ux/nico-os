@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NICO Pro</title>
+    <title>NICO OS Pro</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,8 +13,8 @@
     
     <style>
         :root {
-            --bg: #0f172a;
-            --glass: rgba(30, 41, 59, 0.7);
+            --bg: #020617;
+            --glass: rgba(15, 23, 42, 0.8);
             --accent: #38bdf8;
             --primary: #10b981;
             --text: #f1f5f9;
@@ -22,63 +22,56 @@
         }
 
         body { 
-            margin: 0; padding: 0; font-family: 'Poppins', sans-serif; 
-            background: radial-gradient(circle at top right, #1e293b, #0f172a); 
-            color: var(--text); height: 100vh; display: flex; flex-direction: column;
-            overflow: hidden;
+            margin: 0; font-family: 'Poppins', sans-serif; background: var(--bg); 
+            color: var(--text); height: 100vh; overflow: hidden;
+            background-image: radial-gradient(circle at 50% -20%, #1e293b, #020617);
         }
 
-        /* Glassmorphism Header */
+        /* Top Header */
         .header {
-            padding: 15px 20px; background: var(--glass);
-            backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 20px; background: var(--glass); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
         }
 
-        .time-box { font-family: 'Orbitron'; color: var(--primary); font-size: 1.1rem; }
+        .time-box { font-family: 'Orbitron'; color: var(--primary); font-size: 1rem; }
 
-        /* Professional Layout */
-        .main-container {
-            display: grid; grid-template-columns: 1fr; grid-template-rows: auto 1fr auto;
-            flex: 1; padding: 15px; gap: 15px; overflow-y: auto;
+        /* Bottom Nav */
+        .nav-bar {
+            position: fixed; bottom: 0; width: 100%; height: 65px;
+            background: var(--glass); backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 1000;
         }
+
+        .nav-item { font-size: 1.4rem; cursor: pointer; opacity: 0.6; transition: 0.3s; }
+        .nav-item.active { opacity: 1; color: var(--accent); transform: translateY(-5px); }
+
+        /* Screens */
+        .screen { display: none; height: calc(100vh - 130px); padding: 15px; overflow-y: auto; }
+        .screen.active { display: block; animation: fadeIn 0.3s; }
 
         .card {
-            background: var(--glass); backdrop-filter: blur(10px);
-            border: 1px solid var(--border); border-radius: 20px;
-            padding: 15px; display: flex; flex-direction: column;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            background: var(--glass); border: 1px solid var(--border); border-radius: 20px;
+            padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
 
-        /* Chat Styling */
-        #chat-feed { flex: 1; overflow-y: auto; margin-bottom: 10px; padding-right: 5px; }
-        .msg { margin-bottom: 12px; padding: 10px 15px; border-radius: 15px; font-size: 0.9rem; line-height: 1.4; position: relative; }
-        .msg.user { background: rgba(56, 189, 248, 0.1); border-left: 3px solid var(--accent); align-self: flex-start; }
-        .msg.nico { background: rgba(16, 185, 129, 0.1); border-left: 3px solid var(--primary); align-self: flex-start; }
-
-        .del-x { position: absolute; top: 5px; right: 10px; color: #ef4444; cursor: pointer; font-size: 1.2rem; }
-
-        /* Input Area */
-        .input-bar {
-            background: var(--glass); backdrop-filter: blur(20px);
-            border: 1px solid var(--border); border-radius: 50px;
-            padding: 8px 20px; display: flex; align-items: center; gap: 10px;
-            margin-bottom: 10px;
+        /* Utility Widgets (Floating) */
+        #calc-box, #sticky-box {
+            display: none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%);
+            width: 85%; z-index: 2000; background: #1e293b; border: 1px solid var(--accent);
+            border-radius: 20px; padding: 15px; box-shadow: 0 0 40px rgba(0,0,0,0.8);
         }
 
-        input { background: transparent; border: none; color: white; flex: 1; padding: 10px; outline: none; font-size: 1rem; }
-
-        .icon-btn { cursor: pointer; font-size: 1.3rem; transition: 0.2s; }
-        .icon-btn:active { transform: scale(0.9); }
-
-        .rtl { direction: rtl; font-family: 'Cairo'; text-align: right; color: var(--primary); font-size: 1.1rem; }
-
-        /* Voice Enable Button */
-        #voice-unlock {
-            position: fixed; bottom: 85px; right: 20px; background: var(--accent);
-            color: white; border: none; border-radius: 50%; width: 45px; height: 45px;
-            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4); z-index: 1000;
+        /* Inputs */
+        .input-group {
+            background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+            border-radius: 50px; padding: 5px 15px; display: flex; align-items: center;
         }
+        input { background: transparent; border: none; color: white; flex: 1; padding: 10px; outline: none; }
+
+        .btn-small { background: var(--primary); border: none; color: white; padding: 5px 12px; border-radius: 10px; font-size: 0.7rem; }
+        .rtl { direction: rtl; font-family: 'Cairo'; text-align: right; color: var(--primary); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -86,64 +79,111 @@
     <div class="header">
         <div>
             <div class="time-box" id="clock">00:00:00</div>
-            <div style="font-size: 0.6rem; letter-spacing: 1px; color: var(--accent);">NICO PRO | MADINAH</div>
+            <div style="font-size: 0.5rem; color: var(--accent);">NICO V24 PRO</div>
         </div>
-        <div style="display: flex; gap: 15px;">
-            <span class="icon-btn" onclick="toggleTheme()">🌓</span>
-            <span class="icon-btn" onclick="clearMemory()">♻️</span>
+        <div style="display:flex; gap:15px;">
+            <span onclick="toggleWidget('calc-box')">🔢</span>
+            <span onclick="toggleWidget('sticky-box')">📌</span>
+            <button id="v-btn" onclick="unlockVoice()" style="border:none; background:none; font-size:1.2rem;">🔊</button>
         </div>
     </div>
 
-    <button id="voice-unlock" onclick="unlockVoice()" title="Enable Sound">🔊</button>
-
-    <div class="main-container">
-        <div class="card" style="max-height: 150px;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--accent); margin-bottom: 10px;">
-                <span>TRANSLATION LOG</span>
-                <span onclick="swapLang()" id="lang-ind" style="cursor:pointer; font-weight: bold;">EN → AR</span>
+    <div id="home" class="screen active">
+        <div id="chat-feed" style="margin-bottom:80px;"></div>
+        <div style="position:fixed; bottom:75px; left:10px; right:10px;">
+            <div class="input-group">
+                <span onclick="startVoice()">🎙️</span>
+                <input type="text" id="user-in" placeholder="Command (translate / search)..." onkeydown="if(event.key==='Enter') handleSend()">
+                <span onclick="handleSend()" style="color:var(--primary)">➔</span>
             </div>
-            <div id="history-log" style="overflow-y: auto;"></div>
         </div>
+    </div>
 
+    <div id="vault" class="screen">
+        <h3 style="color:var(--accent)">💎 VAULT</h3>
+        <div id="vault-content" class="card">No data searched yet.</div>
+        <h4 style="font-size:0.8rem;">RECENT LOGS</h4>
+        <div id="history-log"></div>
+    </div>
+
+    <div id="settings" class="screen">
+        <h3 style="color:var(--primary)">⚙️ SYSTEM</h3>
         <div class="card">
-            <div id="chat-feed"></div>
-            <div class="input-bar">
-                <span class="icon-btn" onclick="startVoice()">🎙️</span>
-                <input type="text" id="user-in" placeholder="Say something..." onkeydown="if(event.key==='Enter') handleSend()">
-                <span class="icon-btn" onclick="handleSend()" style="color:var(--primary)">➔</span>
-            </div>
+            <p>Language Direction:</p>
+            <button class="btn-small" onclick="swapLang()" id="lang-ind">EN → AR</button>
+            <hr style="opacity:0.1">
+            <button class="btn-small" style="background:#ef4444" onclick="clearMemory()">FACTORY RESET</button>
         </div>
+    </div>
+
+    <div id="calc-box">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><b>Calculator</b> <span onclick="toggleWidget('calc-box')">✕</span></div>
+        <input type="text" id="calc-screen" readonly style="width:100%; text-align:right; margin-bottom:10px; border:1px solid var(--border)">
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px;">
+            <button class="btn-small" onclick="cIn('7')">7</button><button class="btn-small" onclick="cIn('8')">8</button><button class="btn-small" onclick="cIn('9')">9</button><button class="btn-small" onclick="cIn('/')">/</button>
+            <button class="btn-small" onclick="cIn('4')">4</button><button class="btn-small" onclick="cIn('5')">5</button><button class="btn-small" onclick="cIn('6')">6</button><button class="btn-small" onclick="cIn('*')">*</button>
+            <button class="btn-small" onclick="cIn('1')">1</button><button class="btn-small" onclick="cIn('2')">2</button><button class="btn-small" onclick="cIn('3')">3</button><button class="btn-small" onclick="cIn('-')">-</button>
+            <button class="btn-small" onclick="cClr()">C</button><button class="btn-small" onclick="cIn('0')">0</button><button class="btn-small" onclick="cEq()">=</button><button class="btn-small" onclick="cIn('+')">+</button>
+        </div>
+    </div>
+
+    <div id="sticky-box">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><b>Quick Notes</b> <span onclick="toggleWidget('sticky-box')">✕</span></div>
+        <textarea id="noteArea" style="width:100%; height:200px; background:rgba(0,0,0,0.2); color:white; border:none; border-radius:10px; padding:10px;" placeholder="Type here..."></textarea>
+    </div>
+
+    <div class="nav-bar">
+        <span class="nav-item active" onclick="showScreen('home', this)">🤖</span>
+        <span class="nav-item" onclick="showScreen('vault', this)">📁</span>
+        <span class="nav-item" onclick="showScreen('settings', this)">⚙️</span>
     </div>
 
 <script>
     let STATE = {
         history: JSON.parse(localStorage.getItem('n_hist')) || [],
         chat: JSON.parse(localStorage.getItem('n_chat')) || [],
+        vault: localStorage.getItem('n_vault') || "Ready.",
+        notes: localStorage.getItem('n_notes') || "",
         langPair: 'en|ar'
     };
 
-    // --- SOUND FIX FOR IPHONE ---
     let voiceEnabled = false;
     function unlockVoice() {
         voiceEnabled = true;
-        const u = new SpeechSynthesisUtterance("Voice enabled");
-        u.volume = 0; // Silent first play to "wake up" the audio engine
+        const u = new SpeechSynthesisUtterance("System online");
         window.speechSynthesis.speak(u);
-        document.getElementById('voice-unlock').style.background = '#10b981';
-        document.getElementById('voice-unlock').innerHTML = '✅';
-        setTimeout(() => document.getElementById('voice-unlock').style.display = 'none', 1000);
+        document.getElementById('v-btn').innerHTML = '✅';
     }
 
-    function speak(text, lang) {
+    function speak(t, l) {
         if(!voiceEnabled) return;
         window.speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = lang;
-        msg.rate = 0.9;
-        window.speechSynthesis.speak(msg);
+        const u = new SpeechSynthesisUtterance(t); u.lang = l;
+        window.speechSynthesis.speak(u);
     }
 
-    window.onload = () => { renderLog(); renderChat(); };
+    window.onload = () => {
+        renderChat(); renderLog();
+        document.getElementById('vault-content').innerHTML = STATE.vault;
+        document.getElementById('noteArea').value = STATE.notes;
+    };
+
+    // Save Notes on type
+    document.getElementById('noteArea').oninput = (e) => {
+        localStorage.setItem('n_notes', e.target.value);
+    };
+
+    function showScreen(id, el) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        el.classList.add('active');
+    }
+
+    function toggleWidget(id) {
+        const w = document.getElementById(id);
+        w.style.display = w.style.display === 'block' ? 'none' : 'block';
+    }
 
     async function handleSend() {
         const input = document.getElementById('user-in');
@@ -158,26 +198,34 @@
             const d = await r.json();
             const res = d.responseData.translatedText;
             const isAR = STATE.langPair === 'en|ar';
-            addMsg('nico', `<div class="${isAR ? 'rtl' : ''}">${res}</div>`);
+            addMsg('nico', `<div class="${isAR?'rtl':''}">${res}</div>`);
             saveToLog(q, res, isAR);
             speak(res, isAR ? 'ar-SA' : 'en-US');
-        } else if(cmd.startsWith("video ")) {
-            const q = val.substring(6);
-            addMsg('nico', `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(q)}" target="_blank" style="color:var(--accent); font-weight:bold;">Watch on YouTube ➔</a>`);
+        } else if(cmd.startsWith("search ")) {
+            const q = val.substring(7);
+            const r = await fetch(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=extracts&exintro&explaintext&titles=${encodeURIComponent(q)}`);
+            const d = await r.json();
+            const id = Object.keys(d.query.pages)[0];
+            let content = id === "-1" ? `No results for ${q}` : `<b>${d.query.pages[id].title}</b><hr>${d.query.pages[id].extract}`;
+            STATE.vault = content; localStorage.setItem('n_vault', content);
+            document.getElementById('vault-content').innerHTML = content;
+            showScreen('vault', document.querySelectorAll('.nav-item')[1]);
         }
     }
 
     function addMsg(who, txt) {
         STATE.chat.push({who, txt});
+        if(STATE.chat.length > 15) STATE.chat.shift();
         localStorage.setItem('n_chat', JSON.stringify(STATE.chat));
         renderChat();
     }
 
     function renderChat() {
         document.getElementById('chat-feed').innerHTML = STATE.chat.map(c => `
-            <div class="msg ${c.who}"><b>${c.who.toUpperCase()}</b><br>${c.txt}</div>
-        `).join('');
-        document.getElementById('chat-feed').scrollTop = 9999;
+            <div class="card" style="padding:10px; margin-bottom:10px;">
+                <b style="font-size:0.7rem; color:var(--accent)">${c.who.toUpperCase()}</b><br>${c.txt}
+            </div>`).join('');
+        document.getElementById('home').scrollTop = 9999;
     }
 
     function saveToLog(o, t, isAR) {
@@ -186,34 +234,30 @@
         renderLog();
     }
 
-    function deleteLog(id) {
-        STATE.history = STATE.history.filter(i => i.id !== id);
-        localStorage.setItem('n_hist', JSON.stringify(STATE.history));
-        renderLog();
-    }
-
     function renderLog() {
         document.getElementById('history-log').innerHTML = STATE.history.map(h => `
-            <div class="msg user" style="margin-bottom:5px; padding:5px 10px;">
-                <span class="del-x" onclick="deleteLog(${h.id})">×</span>
-                <small>${h.o}</small><br><span class="${h.isAR?'rtl':''}">${h.t}</span>
-            </div>
-        `).join('');
+            <div class="card" style="font-size:0.8rem; margin-bottom:5px;">
+                <b>${h.o}</b><br><span class="${h.isAR?'rtl':''}">${h.t}</span>
+            </div>`).join('');
     }
 
+    function swapLang() { 
+        STATE.langPair = STATE.langPair === 'en|ar' ? 'ar|en' : 'en|ar';
+        document.getElementById('lang-ind').innerText = STATE.langPair === 'en|ar' ? 'EN → AR' : 'AR → EN';
+    }
+
+    // Calc Logic
+    function cIn(v) { document.getElementById('calc-screen').value += v; }
+    function cClr() { document.getElementById('calc-screen').value = ''; }
+    function cEq() { try { document.getElementById('calc-screen').value = eval(document.getElementById('calc-screen').value); } catch(e) { alert('Error'); } }
+
+    function clearMemory() { if(confirm("Clear all data?")) { localStorage.clear(); location.reload(); } }
     function startVoice() {
         const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         rec.start();
         rec.onresult = (e) => { document.getElementById('user-in').value = e.results[0][0].transcript; handleSend(); };
     }
 
-    function swapLang() { 
-        STATE.langPair = STATE.langPair === 'en|ar' ? 'ar|en' : 'en|ar'; 
-        document.getElementById('lang-ind').innerText = STATE.langPair === 'en|ar' ? 'EN → AR' : 'AR → EN'; 
-    }
-
-    function clearMemory() { if(confirm("Reset all data?")) { localStorage.clear(); location.reload(); } }
-    
     setInterval(() => {
         document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB', { timeZone: "Asia/Riyadh", hour12: false });
     }, 1000);
