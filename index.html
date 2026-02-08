@@ -14,7 +14,7 @@
     <style>
         :root {
             --bg: #020617;
-            --glass: rgba(15, 23, 42, 0.8);
+            --glass: rgba(15, 23, 42, 0.9);
             --accent: #38bdf8;
             --primary: #10b981;
             --text: #f1f5f9;
@@ -35,7 +35,7 @@
 
         .time-box { font-family: 'Orbitron'; color: var(--primary); font-size: 1rem; }
 
-        /* Bottom Nav */
+        /* Navigation Bar */
         .nav-bar {
             position: fixed; bottom: 0; width: 100%; height: 65px;
             background: var(--glass); backdrop-filter: blur(20px);
@@ -45,120 +45,131 @@
         .nav-item { font-size: 1.4rem; cursor: pointer; opacity: 0.6; transition: 0.3s; }
         .nav-item.active { opacity: 1; color: var(--accent); transform: translateY(-5px); }
 
-        /* Screens */
-        .screen { display: none; height: calc(100vh - 130px); padding: 15px; overflow-y: auto; }
+        /* Screen Container */
+        .screen { display: none; height: calc(100vh - 140px); padding: 15px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .screen.active { display: block; animation: fadeIn 0.3s; }
 
         .card {
             background: var(--glass); border: 1px solid var(--border); border-radius: 20px;
             padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            position: relative;
         }
 
-        /* Utility Widgets (Floating) */
+        /* Floating Widgets */
         #calc-box, #sticky-box {
             display: none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%);
             width: 85%; z-index: 2000; background: #1e293b; border: 1px solid var(--accent);
             border-radius: 20px; padding: 15px; box-shadow: 0 0 40px rgba(0,0,0,0.8);
         }
 
-        /* Inputs */
+        /* Inputs & Buttons */
         .input-group {
-            background: rgba(0,0,0,0.3); border: 1px solid var(--border);
-            border-radius: 50px; padding: 5px 15px; display: flex; align-items: center;
+            background: rgba(0,0,0,0.5); border: 1px solid var(--border);
+            border-radius: 50px; padding: 5px 15px; display: flex; align-items: center; backdrop-filter: blur(10px);
         }
-        input { background: transparent; border: none; color: white; flex: 1; padding: 10px; outline: none; }
+        input { background: transparent; border: none; color: white; flex: 1; padding: 12px; outline: none; font-size: 16px; }
 
-        .btn-small { background: var(--primary); border: none; color: white; padding: 5px 12px; border-radius: 10px; font-size: 0.7rem; }
-        .rtl { direction: rtl; font-family: 'Cairo'; text-align: right; color: var(--primary); }
+        .btn-small { background: var(--primary); border: none; color: white; padding: 5px 12px; border-radius: 10px; font-size: 0.7rem; cursor: pointer; }
+        .yt-link { display: inline-block; background: #ef4444; color: white; padding: 10px 20px; border-radius: 12px; text-decoration: none; margin-top: 10px; font-weight: bold; }
+        .google-link { display: block; background: var(--accent); color: #000; padding: 12px; border-radius: 12px; text-decoration: none; margin-top: 10px; font-weight: bold; text-align: center; }
+        
+        .del-btn { position: absolute; top: 10px; right: 15px; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 1.2rem; }
+        .rtl { direction: rtl; font-family: 'Cairo'; text-align: right; color: var(--primary); font-size: 1.1rem; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div class="header">
+    <header class="header">
         <div>
             <div class="time-box" id="clock">00:00:00</div>
-            <div style="font-size: 0.5rem; color: var(--accent);">NICO V24 PRO</div>
+            <div style="font-size: 0.5rem; color: var(--accent); letter-spacing: 1px;">NICO V26 | MADINAH</div>
         </div>
-        <div style="display:flex; gap:15px;">
-            <span onclick="toggleWidget('calc-box')">🔢</span>
-            <span onclick="toggleWidget('sticky-box')">📌</span>
-            <button id="v-btn" onclick="unlockVoice()" style="border:none; background:none; font-size:1.2rem;">🔊</button>
+        <div style="display:flex; gap:18px; align-items: center;">
+            <span onclick="toggleWidget('calc-box')" style="cursor:pointer">🔢</span>
+            <span onclick="toggleWidget('sticky-box')" style="cursor:pointer">📌</span>
+            <button id="v-btn" onclick="unlockVoice()" style="border:none; background:none; font-size:1.3rem; cursor:pointer;">🔊</button>
         </div>
-    </div>
+    </header>
 
     <div id="home" class="screen active">
-        <div id="chat-feed" style="margin-bottom:80px;"></div>
-        <div style="position:fixed; bottom:75px; left:10px; right:10px;">
+        <div id="chat-feed" style="padding-bottom: 100px;"></div>
+        <div style="position:fixed; bottom:75px; left:10px; right:10px; z-index:1001;">
             <div class="input-group">
-                <span onclick="startVoice()">🎙️</span>
-                <input type="text" id="user-in" placeholder="Command (translate / search)..." onkeydown="if(event.key==='Enter') handleSend()">
-                <span onclick="handleSend()" style="color:var(--primary)">➔</span>
+                <span onclick="startVoice()" style="cursor:pointer; font-size:1.2rem; margin-right:5px;">🎙️</span>
+                <input type="text" id="user-in" placeholder="translate... / video... / search..." onkeydown="if(event.key==='Enter') handleSend()">
+                <span onclick="handleSend()" style="color:var(--primary); font-size:1.4rem; cursor:pointer;">➔</span>
             </div>
         </div>
     </div>
 
     <div id="vault" class="screen">
-        <h3 style="color:var(--accent)">💎 VAULT</h3>
-        <div id="vault-content" class="card">No data searched yet.</div>
-        <h4 style="font-size:0.8rem;">RECENT LOGS</h4>
+        <h3 style="color:var(--accent); margin-bottom:10px;">💎 VAULT</h3>
+        <div id="vault-content" class="card">Search results will appear here.</div>
+        
+        <h3 style="color:var(--primary); margin-top:25px; margin-bottom:10px;">📜 TRANSLATION LOG</h3>
         <div id="history-log"></div>
     </div>
 
     <div id="settings" class="screen">
         <h3 style="color:var(--primary)">⚙️ SYSTEM</h3>
         <div class="card">
-            <p>Language Direction:</p>
+            <p style="font-size:0.9rem;">Translation Direction:</p>
             <button class="btn-small" onclick="swapLang()" id="lang-ind">EN → AR</button>
-            <hr style="opacity:0.1">
+            <hr style="opacity:0.1; margin:15px 0;">
+            <p style="font-size:0.8rem; opacity:0.6;">Memory Management:</p>
             <button class="btn-small" style="background:#ef4444" onclick="clearMemory()">FACTORY RESET</button>
         </div>
     </div>
 
     <div id="calc-box">
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><b>Calculator</b> <span onclick="toggleWidget('calc-box')">✕</span></div>
-        <input type="text" id="calc-screen" readonly style="width:100%; text-align:right; margin-bottom:10px; border:1px solid var(--border)">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><b>Calculator</b> <span onclick="toggleWidget('calc-box')" style="cursor:pointer">✕</span></div>
+        <input type="text" id="calc-screen" readonly style="width:100%; text-align:right; margin-bottom:10px; border:1px solid var(--border); background:rgba(0,0,0,0.2); border-radius:8px;">
         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px;">
             <button class="btn-small" onclick="cIn('7')">7</button><button class="btn-small" onclick="cIn('8')">8</button><button class="btn-small" onclick="cIn('9')">9</button><button class="btn-small" onclick="cIn('/')">/</button>
             <button class="btn-small" onclick="cIn('4')">4</button><button class="btn-small" onclick="cIn('5')">5</button><button class="btn-small" onclick="cIn('6')">6</button><button class="btn-small" onclick="cIn('*')">*</button>
             <button class="btn-small" onclick="cIn('1')">1</button><button class="btn-small" onclick="cIn('2')">2</button><button class="btn-small" onclick="cIn('3')">3</button><button class="btn-small" onclick="cIn('-')">-</button>
-            <button class="btn-small" onclick="cClr()">C</button><button class="btn-small" onclick="cIn('0')">0</button><button class="btn-small" onclick="cEq()">=</button><button class="btn-small" onclick="cIn('+')">+</button>
+            <button class="btn-small" onclick="cClr()" style="background:#64748b">C</button><button class="btn-small" onclick="cIn('0')">0</button><button class="btn-small" onclick="cEq()">=</button><button class="btn-small" onclick="cIn('+')">+</button>
         </div>
     </div>
 
     <div id="sticky-box">
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><b>Quick Notes</b> <span onclick="toggleWidget('sticky-box')">✕</span></div>
-        <textarea id="noteArea" style="width:100%; height:200px; background:rgba(0,0,0,0.2); color:white; border:none; border-radius:10px; padding:10px;" placeholder="Type here..."></textarea>
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><b>Quick Notes</b> <span onclick="toggleWidget('sticky-box')" style="cursor:pointer">✕</span></div>
+        <textarea id="noteArea" style="width:100%; height:250px; background:rgba(0,0,0,0.3); color:white; border:none; border-radius:15px; padding:15px; font-family:inherit; outline:none; resize:none;" placeholder="Your notes are saved automatically..."></textarea>
     </div>
 
-    <div class="nav-bar">
+    <nav class="nav-bar">
         <span class="nav-item active" onclick="showScreen('home', this)">🤖</span>
         <span class="nav-item" onclick="showScreen('vault', this)">📁</span>
         <span class="nav-item" onclick="showScreen('settings', this)">⚙️</span>
-    </div>
+    </nav>
 
 <script>
     let STATE = {
         history: JSON.parse(localStorage.getItem('n_hist')) || [],
         chat: JSON.parse(localStorage.getItem('n_chat')) || [],
-        vault: localStorage.getItem('n_vault') || "Ready.",
+        vault: localStorage.getItem('n_vault') || "Ready for search.",
         notes: localStorage.getItem('n_notes') || "",
         langPair: 'en|ar'
     };
 
+    // --- IPHONE AUDIO UNLOCK ---
     let voiceEnabled = false;
     function unlockVoice() {
         voiceEnabled = true;
-        const u = new SpeechSynthesisUtterance("System online");
+        const u = new SpeechSynthesisUtterance("System Initialized");
         window.speechSynthesis.speak(u);
         document.getElementById('v-btn').innerHTML = '✅';
+        setTimeout(() => { document.getElementById('v-btn').style.opacity = "0.5"; }, 2000);
     }
 
     function speak(t, l) {
         if(!voiceEnabled) return;
         window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(t); u.lang = l;
+        const u = new SpeechSynthesisUtterance(t); 
+        u.lang = l;
+        u.rate = 0.95;
         window.speechSynthesis.speak(u);
     }
 
@@ -168,10 +179,8 @@
         document.getElementById('noteArea').value = STATE.notes;
     };
 
-    // Save Notes on type
-    document.getElementById('noteArea').oninput = (e) => {
-        localStorage.setItem('n_notes', e.target.value);
-    };
+    // Auto-save Notes
+    document.getElementById('noteArea').oninput = (e) => localStorage.setItem('n_notes', e.target.value);
 
     function showScreen(id, el) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -192,38 +201,61 @@
         input.value = "";
 
         const cmd = val.toLowerCase();
+
+        // 1. TRANSLATION
         if(cmd.startsWith("translate ")) {
             const q = val.substring(10);
-            const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(q)}&langpair=${STATE.langPair}`);
-            const d = await r.json();
-            const res = d.responseData.translatedText;
-            const isAR = STATE.langPair === 'en|ar';
-            addMsg('nico', `<div class="${isAR?'rtl':''}">${res}</div>`);
-            saveToLog(q, res, isAR);
-            speak(res, isAR ? 'ar-SA' : 'en-US');
-        } else if(cmd.startsWith("search ")) {
+            try {
+                const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(q)}&langpair=${STATE.langPair}`);
+                const d = await r.json();
+                const res = d.responseData.translatedText;
+                const isAR = STATE.langPair === 'en|ar';
+                addMsg('nico', `<div class="${isAR?'rtl':''}">${res}</div>`);
+                saveToLog(q, res, isAR);
+                speak(res, isAR ? 'ar-SA' : 'en-US');
+            } catch(e) { addMsg('nico', "Translation Error."); }
+        } 
+        // 2. VIDEO (YOUTUBE)
+        else if(cmd.startsWith("video ")) {
+            const q = val.substring(6);
+            const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
+            addMsg('nico', `Search for <b>${q}</b> ready.<br><a href="${url}" target="_blank" class="yt-link">WATCH ON YOUTUBE ➔</a>`);
+        }
+        // 3. SEARCH (WIKI + GOOGLE FALLBACK)
+        else if(cmd.startsWith("search ")) {
             const q = val.substring(7);
-            const r = await fetch(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=extracts&exintro&explaintext&titles=${encodeURIComponent(q)}`);
-            const d = await r.json();
-            const id = Object.keys(d.query.pages)[0];
-            let content = id === "-1" ? `No results for ${q}` : `<b>${d.query.pages[id].title}</b><hr>${d.query.pages[id].extract}`;
-            STATE.vault = content; localStorage.setItem('n_vault', content);
-            document.getElementById('vault-content').innerHTML = content;
-            showScreen('vault', document.querySelectorAll('.nav-item')[1]);
+            addMsg('nico', `Searching the Vault...`);
+            try {
+                const r = await fetch(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=extracts&exintro&explaintext&titles=${encodeURIComponent(q)}`);
+                const d = await r.json();
+                const id = Object.keys(d.query.pages)[0];
+                let content = "";
+
+                if(id === "-1") {
+                    content = `<div style="text-align:center;">No Wiki entry for "${q}".<br><a href="https://www.google.com/search?q=${encodeURIComponent(q)}" target="_blank" class="google-link">SEARCH GOOGLE ➔</a></div>`;
+                } else {
+                    content = `<b>${d.query.pages[id].title}</b><hr>${d.query.pages[id].extract}`;
+                }
+
+                STATE.vault = content;
+                localStorage.setItem('n_vault', content);
+                document.getElementById('vault-content').innerHTML = content;
+                showScreen('vault', document.querySelectorAll('.nav-item')[1]);
+            } catch(e) { addMsg('nico', "Vault access failed."); }
         }
     }
 
     function addMsg(who, txt) {
         STATE.chat.push({who, txt});
-        if(STATE.chat.length > 15) STATE.chat.shift();
+        if(STATE.chat.length > 20) STATE.chat.shift();
         localStorage.setItem('n_chat', JSON.stringify(STATE.chat));
         renderChat();
     }
 
     function renderChat() {
         document.getElementById('chat-feed').innerHTML = STATE.chat.map(c => `
-            <div class="card" style="padding:10px; margin-bottom:10px;">
-                <b style="font-size:0.7rem; color:var(--accent)">${c.who.toUpperCase()}</b><br>${c.txt}
+            <div class="card" style="padding:12px; margin-bottom:10px; border-left:4px solid ${c.who==='user'?'var(--accent)':'var(--primary)'}">
+                <b style="font-size:0.7rem; color:${c.who==='user'?'var(--accent)':'var(--primary)'}">${c.who.toUpperCase()}</b><br>${c.txt}
             </div>`).join('');
         document.getElementById('home').scrollTop = 9999;
     }
@@ -234,10 +266,18 @@
         renderLog();
     }
 
+    function deleteLog(id) {
+        STATE.history = STATE.history.filter(i => i.id !== id);
+        localStorage.setItem('n_hist', JSON.stringify(STATE.history));
+        renderLog();
+    }
+
     function renderLog() {
         document.getElementById('history-log').innerHTML = STATE.history.map(h => `
-            <div class="card" style="font-size:0.8rem; margin-bottom:5px;">
-                <b>${h.o}</b><br><span class="${h.isAR?'rtl':''}">${h.t}</span>
+            <div class="card" style="font-size:0.85rem; margin-bottom:10px;">
+                <span class="del-btn" onclick="deleteLog(${h.id})">×</span>
+                <b style="color:var(--accent)">${h.o}</b><br>
+                <span class="${h.isAR?'rtl':''}">${h.t}</span>
             </div>`).join('');
     }
 
@@ -246,14 +286,16 @@
         document.getElementById('lang-ind').innerText = STATE.langPair === 'en|ar' ? 'EN → AR' : 'AR → EN';
     }
 
-    // Calc Logic
     function cIn(v) { document.getElementById('calc-screen').value += v; }
     function cClr() { document.getElementById('calc-screen').value = ''; }
-    function cEq() { try { document.getElementById('calc-screen').value = eval(document.getElementById('calc-screen').value); } catch(e) { alert('Error'); } }
+    function cEq() { try { document.getElementById('calc-screen').value = eval(document.getElementById('calc-screen').value); } catch(e) { alert('Math Error'); } }
 
-    function clearMemory() { if(confirm("Clear all data?")) { localStorage.clear(); location.reload(); } }
+    function clearMemory() { if(confirm("This will erase all notes and history. Continue?")) { localStorage.clear(); location.reload(); } }
+
     function startVoice() {
-        const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if(!Speech) return alert("Mic not supported.");
+        const rec = new Speech();
         rec.start();
         rec.onresult = (e) => { document.getElementById('user-in').value = e.results[0][0].transcript; handleSend(); };
     }
