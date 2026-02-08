@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NICO OS V28</title>
+    <title>NICO OS V30 - Speaker ID</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -26,7 +26,6 @@
             color: var(--text); height: 100vh; overflow: hidden;
         }
 
-        /* --- 1. CYBER ANIMATED BACKGROUND --- */
         .bg-animate {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1; background: radial-gradient(circle at 50% 50%, #1e293b, #020617);
@@ -42,7 +41,6 @@
             100% { transform: translate(120%, 120%); }
         }
 
-        /* --- 2. SYSTEM HEADER & STATS --- */
         .header {
             padding: 15px 20px; background: var(--glass); backdrop-filter: blur(25px);
             border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
@@ -53,7 +51,6 @@
         .offline-dot { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
         .time-box { font-family: 'Orbitron'; color: var(--primary); font-size: 1.2rem; letter-spacing: 1px; }
 
-        /* Navigation Bar */
         .nav-bar {
             position: fixed; bottom: 0; width: 100%; height: 75px;
             background: var(--glass); backdrop-filter: blur(30px);
@@ -62,7 +59,6 @@
         .nav-item { font-size: 1.6rem; cursor: pointer; opacity: 0.4; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .nav-item.active { opacity: 1; color: var(--accent); transform: translateY(-10px) scale(1.25); }
 
-        /* Screens */
         .screen { display: none; height: calc(100vh - 160px); padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .screen.active { display: block; animation: slideUp 0.4s ease-out; }
 
@@ -72,7 +68,6 @@
             position: relative; backdrop-filter: blur(15px);
         }
 
-        /* Inputs */
         .input-group {
             background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border);
             border-radius: 50px; padding: 8px 20px; display: flex; align-items: center; 
@@ -80,16 +75,13 @@
         }
         input { background: transparent; border: none; color: white; flex: 1; padding: 12px; outline: none; font-size: 16px; }
 
-        /* Buttons & Links */
         .btn-small { background: var(--primary); border: none; color: white; padding: 8px 16px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
         .yt-link { display: block; text-align: center; background: #ef4444; color: white; padding: 14px; border-radius: 16px; text-decoration: none; font-weight: bold; margin-top: 15px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
         .google-link { display: block; text-align: center; background: var(--accent); color: #020617; padding: 14px; border-radius: 16px; text-decoration: none; font-weight: bold; margin-top: 15px; }
         
-        /* Delete & RTL */
         .del-btn { position: absolute; top: 12px; right: 18px; color: #ef4444; font-size: 1.4rem; cursor: pointer; opacity: 0.7; }
         .rtl { direction: rtl; font-family: 'Cairo'; text-align: right; color: var(--primary); font-size: 1.2rem; }
 
-        /* Widgets Overlay */
         #calc-box, #sticky-box, #timer-box {
             display: none; position: fixed; top: 12%; left: 50%; transform: translateX(-50%);
             width: 90%; z-index: 2000; background: rgba(15, 23, 42, 0.98); 
@@ -129,7 +121,7 @@
         <div style="position:fixed; bottom:90px; left:20px; right:20px; z-index:1001;">
             <div class="input-group">
                 <span onclick="startVoice()" style="cursor:pointer; font-size:1.4rem; margin-right:10px;">🎙️</span>
-                <input type="text" id="user-in" placeholder="Try 'Open Whatsapp'..." onkeydown="if(event.key==='Enter') handleSend()">
+                <input type="text" id="user-in" placeholder="Say 'Hi Nico'..." onkeydown="if(event.key==='Enter') handleSend()">
                 <span onclick="handleSend()" style="color:var(--primary); font-size:1.6rem; cursor:pointer;">➔</span>
             </div>
         </div>
@@ -198,7 +190,9 @@
         chat: JSON.parse(localStorage.getItem('n_chat')) || [],
         vault: localStorage.getItem('n_vault') || "Search results will appear here.",
         notes: localStorage.getItem('n_notes') || "",
-        langPair: 'en|ar'
+        langPair: 'en|ar',
+        masterName: "Nour",
+        sessionUser: null // Will be set during the "Hi" phase
     };
 
     // 1. SOUND & VOICE
@@ -219,19 +213,18 @@
     }
 
     // 2. MADINAH PRAYER TIMES
+    let currentPrayerTime = "Checking...";
     async function getPrayers() {
         try {
             const r = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Madinah&country=Saudi+Arabia&method=4');
             const d = await r.json();
             const t = d.data.timings;
-            // Identify next prayer logic simplified
-            const now = new Date();
-            const time = now.getHours() + ":" + now.getMinutes();
+            currentPrayerTime = t.Dhuhr;
             document.getElementById('prayer-text').innerText = `Dhuhr: ${t.Dhuhr}`;
         } catch(e) { document.getElementById('prayer-text').innerText = "Madinah"; }
     }
     getPrayers();
-    setInterval(getPrayers, 3600000); // Update every hour
+    setInterval(getPrayers, 3600000);
 
     // 3. SYSTEM STATS
     function updateStats() {
@@ -278,7 +271,7 @@
         w.style.display = (w.style.display === 'block') ? 'none' : 'block';
     }
 
-    // 5. COMMAND HANDLER (Added Whatsapp logic)
+    // 5. COMMAND & CONVERSATION HANDLER (With Speaker Recognition Logic)
     async function handleSend() {
         const input = document.getElementById('user-in');
         const val = input.value.trim(); if(!val) return;
@@ -286,14 +279,56 @@
         input.value = "";
         const cmd = val.toLowerCase();
 
-        // OPEN WHATSAPP
-        if(cmd.includes("open whatsapp")) {
+        // SPEAKER IDENTIFICATION CHECK
+        if (cmd.includes("hi") || cmd.includes("hello") || cmd.includes("hey nico")) {
+            if (!STATE.sessionUser) {
+                const r = "Hi. I recognize a voice, but I'm not sure who it is. What shall I address you with?";
+                addMsg('nico', r); speak(r);
+                return;
+            } else {
+                const r = `Hi ${STATE.sessionUser}! How is your day going?`;
+                addMsg('nico', r); speak(r);
+                return;
+            }
+        }
+
+        // IDENTITY CAPTURE
+        if (cmd.startsWith("i am ") || cmd.startsWith("my name is ") || cmd.includes("it's nour")) {
+            if (cmd.includes("nour")) {
+                STATE.sessionUser = "Nour";
+                const r = "Voice print confirmed. Welcome back, Nour. How can I help you today?";
+                addMsg('nico', r); speak(r);
+            } else {
+                const words = cmd.split(" ");
+                STATE.sessionUser = words[words.length - 1];
+                const r = `Hi ${STATE.sessionUser}. I have recorded your presence. What can I do for you?`;
+                addMsg('nico', r); speak(r);
+            }
+            return;
+        }
+
+        // STANDARD COMMANDS (Respecting the Session User)
+        if (cmd.includes("how are you")) {
+            const r = `I'm functioning perfectly, ${STATE.sessionUser || 'friend'}! Thank you for asking.`;
+            addMsg('nico', r); speak(r);
+        }
+        else if (cmd.includes("fine") || cmd.includes("alhumdulillah") || cmd.includes("good")) {
+            const r = "Alhumdulillah, I am glad to hear that. How can I assist you?";
+            addMsg('nico', r); speak(r);
+        }
+        else if(cmd.includes("open whatsapp")) {
             addMsg('nico', "Opening WhatsApp...");
             speak("Opening WhatsApp");
             window.location.href = "whatsapp://send";
             setTimeout(() => { if(document.hasFocus()) window.open("https://web.whatsapp.com/", "_blank"); }, 1000);
         }
-        // TRANSLATE
+        else if(cmd.includes("briefing") || cmd.includes("start my day")) {
+            const time = new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+            const name = STATE.sessionUser || "User";
+            const briefingText = `Good morning ${name}. It is ${time}. The next prayer in Madinah is Dhuhr at ${currentPrayerTime}. Your system is online and ready.`;
+            addMsg('nico', briefingText);
+            speak(briefingText);
+        }
         else if(cmd.startsWith("translate ")) {
             const q = val.substring(10);
             try {
@@ -306,13 +341,11 @@
                 speak(res, isAR ? 'ar-SA' : 'en-US');
             } catch(e) { addMsg('nico', "Translation failed."); }
         } 
-        // YOUTUBE
         else if(cmd.startsWith("video ")) {
             const q = val.substring(6);
             const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
             addMsg('nico', `Search for <b>${q}</b> ready.<br><a href="${url}" target="_blank" class="yt-link">WATCH ON YOUTUBE ➔</a>`);
         }
-        // SEARCH
         else if(cmd.startsWith("search ")) {
             const q = val.substring(7);
             addMsg('nico', `Searching Vault...`);
@@ -374,12 +407,16 @@
     function cClr() { document.getElementById('calc-screen').value = ''; }
     function cEq() { try { document.getElementById('calc-screen').value = eval(document.getElementById('calc-screen').value); } catch(e) { alert('Error'); } }
     function clearMemory() { if(confirm("Erase data?")) { localStorage.clear(); location.reload(); } }
+    
     function startVoice() {
         const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
         if(!Speech) return alert("Browser not supported.");
         const rec = new Speech();
         rec.start();
-        rec.onresult = (e) => { document.getElementById('user-in').value = e.results[0][0].transcript; handleSend(); };
+        rec.onresult = (e) => { 
+            document.getElementById('user-in').value = e.results[0][0].transcript; 
+            handleSend(); 
+        };
     }
     setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB', { timeZone: "Asia/Riyadh", hour12: false }); }, 1000);
 </script>
