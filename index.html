@@ -274,6 +274,7 @@
         input.value = "";
         const cmd = val.toLowerCase();
 
+        // 1. IDENTITY HANDLING
         if (cmd.startsWith("i am ") || cmd.startsWith("my name is ") || cmd.startsWith("call me ")) {
             const words = cmd.split(" ");
             const newName = words[words.length - 1];
@@ -285,49 +286,34 @@
             return;
         }
 
-        if (cmd.includes("hi") || cmd.includes("hello") || cmd.includes("hey nico")) {
-            const r = `System online. Hello ${STATE.sessionUser}. What's on your mind?`;
-            addMsg('nico', r); speak(r);
-            return;
-        }
-
-        // --- NEW APP COMMANDS ---
+        // 2. APP COMMANDS (Priority)
         if(cmd.includes("open youtube")) {
             addMsg('nico', "Launching YouTube...");
             speak("Opening YouTube");
             window.open("https://www.youtube.com", "_blank");
             return;
         }
-        else if(cmd.includes("open gmail") || cmd.includes("open email")) {
+        if(cmd.includes("open gmail") || cmd.includes("open email")) {
             addMsg('nico', "Accessing Mail Server...");
             speak("Opening Gmail");
             window.open("https://mail.google.com", "_blank");
             return;
         }
-        else if(cmd.includes("open zoom")) {
+        if(cmd.includes("open zoom")) {
             addMsg('nico', "Starting Zoom...");
             speak("Opening Zoom");
             window.open("https://zoom.us", "_blank");
             return;
         }
-
-        // --- YARGI QUOTES ENGINE ---
-        else if(cmd.includes("yargi quote") || cmd.includes("philosophize")) {
-            const yargiQuotes = [
-                "“An item you try to hide, becomes a burden you have to carry.” — Miguel de Cervantes",
-                "“A water source cannot be both sweet and bitter.” — Heraclitus",
-                "“No one is as innocent as they think, nor as guilty as others say.”",
-                "“Whatever you hide, stays with you; whatever you share, belongs to everyone.”",
-                "“The truth is like surgery. It hurts, but it heals.”",
-                "“Every choice is a renunciation.” — Honoré de Balzac",
-                "“Justice is the constant and perpetual will to render to each his due.” — Ulpian"
-            ];
-            const randomQuote = yargiQuotes[Math.floor(Math.random() * yargiQuotes.length)];
-            addMsg('nico', `📜 <i style="color:var(--accent)">${randomQuote}</i>`);
-            speak(randomQuote);
+        if(cmd.includes("open whatsapp")) {
+            addMsg('nico', "Opening WhatsApp...");
+            speak("Opening WhatsApp");
+            window.location.href = "whatsapp://send";
+            setTimeout(() => { if(document.hasFocus()) window.open("https://web.whatsapp.com/", "_blank"); }, 1000);
             return;
         }
 
+        // 3. SPECIAL FUNCTIONS
         if(cmd.startsWith("translate ")) {
             const q = val.substring(10);
             addMsg('nico', "Analyzing linguistics...");
@@ -344,31 +330,37 @@
             return;
         } 
 
-        if (cmd.includes("how are you")) {
-            const r = `I'm functioning perfectly, ${STATE.sessionUser}!`;
-            addMsg('nico', r); speak(r);
+        if(cmd.includes("yargi quote") || cmd.includes("philosophize")) {
+            const yargiQuotes = [
+                "“An item you try to hide, becomes a burden you have to carry.” — Miguel de Cervantes",
+                "“A water source cannot be both sweet and bitter.” — Heraclitus",
+                "“No one is as innocent as they think, nor as guilty as others say.”",
+                "“Whatever you hide, stays with you; whatever you share, belongs to everyone.”",
+                "“The truth is like surgery. It hurts, but it heals.”",
+                "“Every choice is a renunciation.” — Honoré de Balzac",
+                "“Justice is the constant and perpetual will to render to each his due.” — Ulpian"
+            ];
+            const randomQuote = yargiQuotes[Math.floor(Math.random() * yargiQuotes.length)];
+            addMsg('nico', `📜 <i style="color:var(--accent)">${randomQuote}</i>`);
+            speak(randomQuote);
+            return;
         }
-        else if (cmd.includes("fine") || cmd.includes("alhumdulillah") || cmd.includes("good")) {
-            const r = "Alhumdulillah, I am glad to hear that.";
-            addMsg('nico', r); speak(r);
-        }
-        else if(cmd.includes("open whatsapp")) {
-            addMsg('nico', "Opening WhatsApp...");
-            speak("Opening WhatsApp");
-            window.location.href = "whatsapp://send";
-            setTimeout(() => { if(document.hasFocus()) window.open("https://web.whatsapp.com/", "_blank"); }, 1000);
-        }
-        else if(cmd.includes("briefing") || cmd.includes("start my day")) {
+
+        if(cmd.includes("briefing") || cmd.includes("start my day")) {
             const time = new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
             const briefingText = `Good morning ${STATE.sessionUser}. It is ${time}. Dhuhr in Madinah is at ${currentPrayerTime}. System ready.`;
             addMsg('nico', briefingText); speak(briefingText);
+            return;
         }
-        else if(cmd.startsWith("video ")) {
+
+        if(cmd.startsWith("video ")) {
             const q = val.substring(6);
             const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
             addMsg('nico', `Search for <b>${q}</b> ready.<br><a href="${url}" target="_blank" class="yt-link">WATCH ON YOUTUBE ➔</a>`);
+            return;
         }
-        else if(cmd.startsWith("search ")) {
+
+        if(cmd.startsWith("search ")) {
             const q = val.substring(7);
             addMsg('nico', `Searching Vault...`);
             try {
@@ -380,6 +372,27 @@
                 document.getElementById('vault-content').innerHTML = content;
                 showScreen('vault', document.querySelectorAll('.nav-item')[1]);
             } catch(e) { addMsg('nico', "Error."); }
+            return;
+        }
+
+        // 4. CHAT & GREETINGS (Strict check to prevent overriding commands)
+        const pureGreetings = ["hi", "hello", "hey nico", "nico", "hey", "asalamu alaykum"];
+        if (pureGreetings.includes(cmd)) {
+            const r = `System online. Hello ${STATE.sessionUser}. What's on your mind?`;
+            addMsg('nico', r); speak(r);
+            return;
+        }
+
+        if (cmd.includes("how are you")) {
+            const r = `I'm functioning perfectly, ${STATE.sessionUser}!`;
+            addMsg('nico', r); speak(r);
+        }
+        else if (cmd.includes("fine") || cmd.includes("alhumdulillah") || cmd.includes("good")) {
+            const r = "Alhumdulillah, I am glad to hear that.";
+            addMsg('nico', r); speak(r);
+        }
+        else {
+            addMsg('nico', "Command not recognized. Try 'search [topic]', 'translate [text]', or 'open [app]'.");
         }
     }
 
