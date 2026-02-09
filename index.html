@@ -24,6 +24,7 @@
         body { 
             margin: 0; font-family: 'Poppins', sans-serif; background: var(--bg); 
             color: var(--text); height: 100vh; overflow: hidden;
+            background-size: cover; background-position: center; transition: background 0.5s ease;
         }
 
         .bg-animate {
@@ -31,6 +32,9 @@
             z-index: -1; background: radial-gradient(circle at 50% 50%, #1e293b, #020617);
             overflow: hidden;
         }
+        /* Hidden blobs if a custom background is set */
+        body.custom-bg .bg-animate { display: none; }
+
         .blob {
             position: absolute; width: 350px; height: 350px;
             background: linear-gradient(135deg, rgba(56,189,248,0.2), rgba(16,185,129,0.15));
@@ -140,6 +144,17 @@
             <p style="font-size:0.9rem;">Translation Direction:</p>
             <button class="btn-small" onclick="swapLang()" id="lang-ind">EN → AR</button>
             <hr style="opacity:0.1; margin:20px 0;">
+            
+            <p style="font-size:0.9rem;">System Aesthetics (Background Image URL):</p>
+            <div class="input-group" style="margin-bottom:10px; background:rgba(255,255,255,0.05)">
+                <input type="text" id="bg-url-in" placeholder="Paste image URL here...">
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-small" onclick="updateBG()">Update Background</button>
+                <button class="btn-small" style="background:#475569" onclick="resetBG()">Reset Default</button>
+            </div>
+
+            <hr style="opacity:0.1; margin:20px 0;">
             <p style="font-size:0.8rem; opacity:0.6;">Maintenance:</p>
             <button class="btn-small" style="background:#ef4444" onclick="clearMemory()">FULL FACTORY RESET</button>
         </div>
@@ -191,9 +206,33 @@
         vault: localStorage.getItem('n_vault') || "Search results will appear here.",
         notes: localStorage.getItem('n_notes') || "",
         langPair: 'en|ar',
-        sessionUser: localStorage.getItem('n_user') || "Nour" 
+        sessionUser: localStorage.getItem('n_user') || "Nour",
+        bgUrl: localStorage.getItem('n_bg') || ""
     };
 
+    // 1. BACKGROUND HANDLING
+    function updateBG() {
+        const url = document.getElementById('bg-url-in').value;
+        if(url) {
+            STATE.bgUrl = url;
+            localStorage.setItem('n_bg', url);
+            applyBG();
+        }
+    }
+    function resetBG() {
+        STATE.bgUrl = "";
+        localStorage.removeItem('n_bg');
+        document.body.classList.remove('custom-bg');
+        document.body.style.backgroundImage = "none";
+    }
+    function applyBG() {
+        if(STATE.bgUrl) {
+            document.body.style.backgroundImage = `url('${STATE.bgUrl}')`;
+            document.body.classList.add('custom-bg');
+        }
+    }
+
+    // VOICE & PRAYERS
     let voiceEnabled = false;
     function unlockVoice() {
         voiceEnabled = true;
@@ -222,7 +261,6 @@
         } catch(e) { document.getElementById('prayer-text').innerText = "Madinah"; }
     }
     getPrayers();
-    setInterval(getPrayers, 3600000);
 
     function updateStats() {
         if (navigator.getBattery) {
@@ -235,25 +273,14 @@
                 bat.onchargingchange = updateBat;
             });
         }
-        const dot = document.getElementById('net-dot');
-        const txt = document.getElementById('net-text');
-        if (navigator.onLine) {
-            dot.className = "online-dot"; txt.innerText = "Online";
-        } else {
-            dot.className = "online-dot offline-dot"; txt.innerText = "Offline";
-        }
     }
-    window.addEventListener('online', updateStats);
-    window.addEventListener('offline', updateStats);
-    updateStats();
 
     window.onload = () => {
         renderChat(); renderLog();
         document.getElementById('vault-content').innerHTML = STATE.vault;
         document.getElementById('noteArea').value = STATE.notes;
+        applyBG();
     };
-
-    document.getElementById('noteArea').oninput = (e) => localStorage.setItem('n_notes', e.target.value);
 
     function showScreen(id, el) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -274,100 +301,44 @@
         input.value = "";
         const cmd = val.toLowerCase();
 
-        // 1. IDENTITY HANDLING
+        // IDENTITY
         if (cmd.startsWith("i am ") || cmd.startsWith("my name is ") || cmd.startsWith("call me ")) {
             const words = cmd.split(" ");
             const newName = words[words.length - 1];
             const capitalizedName = newName.charAt(0).toUpperCase() + newName.slice(1);
             STATE.sessionUser = capitalizedName;
             localStorage.setItem('n_user', capitalizedName);
-            let r = (capitalizedName === "Nour") ? "Identity restored. Welcome back, Nour." : `Understood. Hello, ${capitalizedName}.`;
+            let r = `Understood. Hello, ${capitalizedName}.`;
             addMsg('nico', r); speak(r);
             return;
         }
 
-        // 2. APP COMMANDS (Priority)
-        if(cmd.includes("open youtube")) {
-            addMsg('nico', "Launching YouTube...");
-            speak("Opening YouTube");
-            window.open("https://www.youtube.com", "_blank");
-            return;
-        }
-        if(cmd.includes("open gmail") || cmd.includes("open email")) {
-            addMsg('nico', "Accessing Mail Server...");
-            speak("Opening Gmail");
-            window.open("https://mail.google.com", "_blank");
-            return;
-        }
-        if(cmd.includes("open zoom")) {
-            addMsg('nico', "Starting Zoom...");
-            speak("Opening Zoom");
-            window.open("https://zoom.us", "_blank");
-            return;
-        }
-        if(cmd.includes("open whatsapp")) {
-            addMsg('nico', "Opening WhatsApp...");
-            speak("Opening WhatsApp");
-            window.location.href = "whatsapp://send";
-            setTimeout(() => { if(document.hasFocus()) window.open("https://web.whatsapp.com/", "_blank"); }, 1000);
-            return;
-        }
+        // APPS
+        if(cmd.includes("open youtube")) { window.open("https://www.youtube.com", "_blank"); return; }
+        if(cmd.includes("open gmail")) { window.open("https://mail.google.com", "_blank"); return; }
 
-        // 3. SPECIAL FUNCTIONS
+        // SEARCH/TRANS
         if(cmd.startsWith("translate ")) {
             const q = val.substring(10);
-            addMsg('nico', "Analyzing linguistics...");
             try {
                 const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(q)}&langpair=${STATE.langPair}&de=nour@nico-os.com`);
                 const d = await r.json();
                 let res = d.responseData.translatedText;
-                res = res.replace("أنا يكون", "أنا").replace("هو يكون", "هو").replace("هي تكون", "هي"); 
                 const isAR = STATE.langPair === 'en|ar';
                 addMsg('nico', `<div class="${isAR?'rtl':''}">${res}</div>`);
-                saveToLog(q, res, isAR);
                 speak(res, isAR ? 'ar-SA' : 'en-US');
-            } catch(e) { addMsg('nico', "Translation engine timeout."); }
-            return;
-        } 
-
-        if(cmd.includes("yargi quote") || cmd.includes("philosophize")) {
-            const yargiQuotes = [
-                "“An item you try to hide, becomes a burden you have to carry.” — Miguel de Cervantes",
-                "“A water source cannot be both sweet and bitter.” — Heraclitus",
-                "“No one is as innocent as they think, nor as guilty as others say.”",
-                "“Whatever you hide, stays with you; whatever you share, belongs to everyone.”",
-                "“The truth is like surgery. It hurts, but it heals.”",
-                "“Every choice is a renunciation.” — Honoré de Balzac",
-                "“Justice is the constant and perpetual will to render to each his due.” — Ulpian"
-            ];
-            const randomQuote = yargiQuotes[Math.floor(Math.random() * yargiQuotes.length)];
-            addMsg('nico', `📜 <i style="color:var(--accent)">${randomQuote}</i>`);
-            speak(randomQuote);
-            return;
-        }
-
-        if(cmd.includes("briefing") || cmd.includes("start my day")) {
-            const time = new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
-            const briefingText = `Good morning ${STATE.sessionUser}. It is ${time}. Dhuhr in Madinah is at ${currentPrayerTime}. System ready.`;
-            addMsg('nico', briefingText); speak(briefingText);
-            return;
-        }
-
-        if(cmd.startsWith("video ")) {
-            const q = val.substring(6);
-            const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
-            addMsg('nico', `Search for <b>${q}</b> ready.<br><a href="${url}" target="_blank" class="yt-link">WATCH ON YOUTUBE ➔</a>`);
+            } catch(e) { addMsg('nico', "Translation error."); }
             return;
         }
 
         if(cmd.startsWith("search ")) {
             const q = val.substring(7);
-            addMsg('nico', `Searching Vault...`);
+            addMsg('nico', `Searching...`);
             try {
                 const r = await fetch(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=extracts&exintro&explaintext&titles=${encodeURIComponent(q)}`);
                 const d = await r.json();
                 const id = Object.keys(d.query.pages)[0];
-                let content = (id === "-1") ? `<div style="text-align:center; padding:10px;">No Wiki entry. <a href="https://www.google.com/search?q=${encodeURIComponent(q)}" target="_blank" class="google-link">GOOGLE ➔</a></div>` : `<b>${d.query.pages[id].title}</b><hr style="opacity:0.2;">${d.query.pages[id].extract}`;
+                let content = (id === "-1") ? "No entry found." : d.query.pages[id].extract;
                 STATE.vault = content; localStorage.setItem('n_vault', content);
                 document.getElementById('vault-content').innerHTML = content;
                 showScreen('vault', document.querySelectorAll('.nav-item')[1]);
@@ -375,8 +346,8 @@
             return;
         }
 
-        // 4. CHAT & GREETINGS (Strict check to prevent overriding commands)
-        const pureGreetings = ["hi", "hello", "hey nico", "nico", "hey", "asalamu alaykum"];
+        // IMPROVED GREETINGS
+        const pureGreetings = ["hi", "hello", "hey nico", "hi nico", "nico", "hey", "asalamu alaykum", "hello nico"];
         if (pureGreetings.includes(cmd)) {
             const r = `System online. Hello ${STATE.sessionUser}. What's on your mind?`;
             addMsg('nico', r); speak(r);
@@ -386,42 +357,12 @@
         if (cmd.includes("how are you")) {
             const r = `I'm functioning perfectly, ${STATE.sessionUser}!`;
             addMsg('nico', r); speak(r);
-        }
-        else if (cmd.includes("fine") || cmd.includes("alhumdulillah") || cmd.includes("good")) {
-            const r = "Alhumdulillah, I am glad to hear that.";
-            addMsg('nico', r); speak(r);
-        }
-        else {
-            addMsg('nico', "Command not recognized. Try 'search [topic]', 'translate [text]', or 'open [app]'.");
+        } else {
+            addMsg('nico', "Command not recognized.");
         }
     }
 
-    let swInterval, swSec = 0;
-    function startSW() {
-        clearInterval(swInterval);
-        swInterval = setInterval(() => {
-            swSec++;
-            let h = Math.floor(swSec/3600).toString().padStart(2,'0');
-            let m = Math.floor((swSec%3600)/60).toString().padStart(2,'0');
-            let s = (swSec%60).toString().padStart(2,'0');
-            document.getElementById('sw-display').innerText = `${h}:${m}:${s}`;
-        }, 1000);
-    }
-    function stopSW() { clearInterval(swInterval); }
-    function resetSW() { stopSW(); swSec = 0; document.getElementById('sw-display').innerText = "00:00:00"; }
-    
-    function startTimer() {
-        let mins = document.getElementById('t-min').value;
-        if(!mins) return;
-        let target = mins * 60;
-        document.getElementById('timer-box').style.display = 'none';
-        addMsg('nico', `Timer set for ${mins} minutes.`);
-        setTimeout(() => {
-            speak("Time is up!");
-            alert("Timer Finished!");
-        }, target * 1000);
-    }
-
+    // HELPER FUNCTIONS
     function addMsg(who, txt) {
         STATE.chat.push({who, txt});
         if(STATE.chat.length > 20) STATE.chat.shift();
@@ -432,26 +373,13 @@
         document.getElementById('chat-feed').innerHTML = STATE.chat.map(c => `<div class="card" style="padding:15px; border-left:5px solid ${c.who==='user'?'var(--accent)':'var(--primary)'}"><small style="color:${c.who==='user'?'var(--accent)':'var(--primary)'}; font-weight:bold;">${c.who.toUpperCase()}</small><br>${c.txt}</div>`).join('');
         document.getElementById('home').scrollTop = 9999;
     }
-    function saveToLog(o, t, isAR) { STATE.history.unshift({o, t, isAR, id: Date.now()}); localStorage.setItem('n_hist', JSON.stringify(STATE.history)); renderLog(); }
-    function deleteLog(id) { STATE.history = STATE.history.filter(i => i.id !== id); localStorage.setItem('n_hist', JSON.stringify(STATE.history)); renderLog(); }
-    function renderLog() { document.getElementById('history-log').innerHTML = STATE.history.map(h => `<div class="card" style="font-size:0.9rem;"><span class="del-btn" onclick="deleteLog(${h.id})">×</span><b style="color:var(--accent)">${h.o}</b><br><span class="${h.isAR?'rtl':''}">${h.t}</span></div>`).join(''); }
     function swapLang() { STATE.langPair = (STATE.langPair === 'en|ar') ? 'ar|en' : 'en|ar'; document.getElementById('lang-ind').innerText = (STATE.langPair === 'en|ar') ? 'EN → AR' : 'AR → EN'; }
-    function cIn(v) { document.getElementById('calc-screen').value += v; }
-    function cClr() { document.getElementById('calc-screen').value = ''; }
-    function cEq() { try { document.getElementById('calc-screen').value = eval(document.getElementById('calc-screen').value); } catch(e) { alert('Error'); } }
-    function clearMemory() { if(confirm("Erase data?")) { localStorage.clear(); location.reload(); } }
+    function clearMemory() { if(confirm("Erase all data?")) { localStorage.clear(); location.reload(); } }
     
-    function startVoice() {
-        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if(!Speech) return alert("Browser not supported.");
-        const rec = new Speech();
-        rec.start();
-        rec.onresult = (e) => { 
-            document.getElementById('user-in').value = e.results[0][0].transcript; 
-            handleSend(); 
-        };
-    }
+    // UI INTERVALS
     setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB', { timeZone: "Asia/Riyadh", hour12: false }); }, 1000);
+    updateStats();
 </script>
 </body>
 </html>
+
