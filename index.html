@@ -191,14 +191,12 @@
         vault: localStorage.getItem('n_vault') || "Search results will appear here.",
         notes: localStorage.getItem('n_notes') || "",
         langPair: 'en|ar',
-        sessionUser: localStorage.getItem('n_user') || "Nour" // Persistent Memory
+        sessionUser: localStorage.getItem('n_user') || "Nour" 
     };
 
-    // 1. SOUND & VOICE
     let voiceEnabled = false;
     function unlockVoice() {
         voiceEnabled = true;
-        // FIXED: Now greets based on the actual session user
         const greetingText = `Vocal interface active. Welcome, ${STATE.sessionUser}.`;
         const u = new SpeechSynthesisUtterance(greetingText);
         window.speechSynthesis.speak(u);
@@ -213,7 +211,6 @@
         window.speechSynthesis.speak(u);
     }
 
-    // 2. MADINAH PRAYER TIMES
     let currentPrayerTime = "Checking...";
     async function getPrayers() {
         try {
@@ -227,7 +224,6 @@
     getPrayers();
     setInterval(getPrayers, 3600000);
 
-    // 3. SYSTEM STATS
     function updateStats() {
         if (navigator.getBattery) {
             navigator.getBattery().then(bat => {
@@ -251,7 +247,6 @@
     window.addEventListener('offline', updateStats);
     updateStats();
 
-    // 4. CORE FUNCTIONS
     window.onload = () => {
         renderChat(); renderLog();
         document.getElementById('vault-content').innerHTML = STATE.vault;
@@ -272,7 +267,6 @@
         w.style.display = (w.style.display === 'block') ? 'none' : 'block';
     }
 
-    // 5. COMMAND & CONVERSATION HANDLER
     async function handleSend() {
         const input = document.getElementById('user-in');
         const val = input.value.trim(); if(!val) return;
@@ -280,32 +274,60 @@
         input.value = "";
         const cmd = val.toLowerCase();
 
-        // --- FIXED IDENTITY CAPTURE ---
         if (cmd.startsWith("i am ") || cmd.startsWith("my name is ") || cmd.startsWith("call me ")) {
             const words = cmd.split(" ");
             const newName = words[words.length - 1];
             const capitalizedName = newName.charAt(0).toUpperCase() + newName.slice(1);
-            
-            // Save to State AND LocalStorage
             STATE.sessionUser = capitalizedName;
             localStorage.setItem('n_user', capitalizedName);
-            
-            let r = (capitalizedName === "Nour") ? 
-                "Identity restored. Welcome back, Nour." : 
-                `Understood. Memory adjusted. Hello, ${capitalizedName}.`;
-            
+            let r = (capitalizedName === "Nour") ? "Identity restored. Welcome back, Nour." : `Understood. Hello, ${capitalizedName}.`;
             addMsg('nico', r); speak(r);
             return;
         }
 
-        // FIXED GREETING LOGIC
         if (cmd.includes("hi") || cmd.includes("hello") || cmd.includes("hey nico")) {
             const r = `System online. Hello ${STATE.sessionUser}. What's on your mind?`;
             addMsg('nico', r); speak(r);
             return;
         }
 
-        // FLUENT TRANSLATION ENGINE
+        // --- NEW APP COMMANDS ---
+        if(cmd.includes("open youtube")) {
+            addMsg('nico', "Launching YouTube...");
+            speak("Opening YouTube");
+            window.open("https://www.youtube.com", "_blank");
+            return;
+        }
+        else if(cmd.includes("open gmail") || cmd.includes("open email")) {
+            addMsg('nico', "Accessing Mail Server...");
+            speak("Opening Gmail");
+            window.open("https://mail.google.com", "_blank");
+            return;
+        }
+        else if(cmd.includes("open zoom")) {
+            addMsg('nico', "Starting Zoom...");
+            speak("Opening Zoom");
+            window.open("https://zoom.us", "_blank");
+            return;
+        }
+
+        // --- YARGI QUOTES ENGINE ---
+        else if(cmd.includes("yargi quote") || cmd.includes("philosophize")) {
+            const yargiQuotes = [
+                "“An item you try to hide, becomes a burden you have to carry.” — Miguel de Cervantes",
+                "“A water source cannot be both sweet and bitter.” — Heraclitus",
+                "“No one is as innocent as they think, nor as guilty as others say.”",
+                "“Whatever you hide, stays with you; whatever you share, belongs to everyone.”",
+                "“The truth is like surgery. It hurts, but it heals.”",
+                "“Every choice is a renunciation.” — Honoré de Balzac",
+                "“Justice is the constant and perpetual will to render to each his due.” — Ulpian"
+            ];
+            const randomQuote = yargiQuotes[Math.floor(Math.random() * yargiQuotes.length)];
+            addMsg('nico', `📜 <i style="color:var(--accent)">${randomQuote}</i>`);
+            speak(randomQuote);
+            return;
+        }
+
         if(cmd.startsWith("translate ")) {
             const q = val.substring(10);
             addMsg('nico', "Analyzing linguistics...");
@@ -314,7 +336,6 @@
                 const d = await r.json();
                 let res = d.responseData.translatedText;
                 res = res.replace("أنا يكون", "أنا").replace("هو يكون", "هو").replace("هي تكون", "هي"); 
-
                 const isAR = STATE.langPair === 'en|ar';
                 addMsg('nico', `<div class="${isAR?'rtl':''}">${res}</div>`);
                 saveToLog(q, res, isAR);
@@ -323,13 +344,12 @@
             return;
         } 
 
-        // OTHER COMMANDS
         if (cmd.includes("how are you")) {
-            const r = `I'm functioning perfectly, ${STATE.sessionUser}! Thank you for asking.`;
+            const r = `I'm functioning perfectly, ${STATE.sessionUser}!`;
             addMsg('nico', r); speak(r);
         }
         else if (cmd.includes("fine") || cmd.includes("alhumdulillah") || cmd.includes("good")) {
-            const r = "Alhumdulillah, I am glad to hear that. How can I assist you?";
+            const r = "Alhumdulillah, I am glad to hear that.";
             addMsg('nico', r); speak(r);
         }
         else if(cmd.includes("open whatsapp")) {
@@ -340,7 +360,7 @@
         }
         else if(cmd.includes("briefing") || cmd.includes("start my day")) {
             const time = new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
-            const briefingText = `Good morning ${STATE.sessionUser}. It is ${time}. Dhuhr in Madinah is at ${currentPrayerTime}. Your system is ready.`;
+            const briefingText = `Good morning ${STATE.sessionUser}. It is ${time}. Dhuhr in Madinah is at ${currentPrayerTime}. System ready.`;
             addMsg('nico', briefingText); speak(briefingText);
         }
         else if(cmd.startsWith("video ")) {
@@ -363,7 +383,6 @@
         }
     }
 
-    // 6. STOPWATCH & TIMER LOGIC
     let swInterval, swSec = 0;
     function startSW() {
         clearInterval(swInterval);
@@ -390,7 +409,6 @@
         }, target * 1000);
     }
 
-    // HELPERS
     function addMsg(who, txt) {
         STATE.chat.push({who, txt});
         if(STATE.chat.length > 20) STATE.chat.shift();
